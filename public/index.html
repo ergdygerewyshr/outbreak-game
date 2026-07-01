@@ -4,11 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>OUTBREAK — Survive the Horde</title>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
 <style>
 :root{
   --bg:#0a0d0a;
@@ -19,207 +17,74 @@
   --bone:#e8e6df;
   --muted:#6b7364;
 }
-
-/* ---------- GLOBAL ---------- */
-
-*{
-  box-sizing:border-box;
-}
-
+* { box-sizing:border-box; }
 html, body{
-  margin:0;
-  padding:0;
-  height:100%;
-  background:var(--bg);
-  color:var(--bone);
-  font-family:'JetBrains Mono', monospace;
-  overflow:hidden;
-
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  margin:0; padding:0; height:100%; background:var(--bg); color:var(--bone);
+  font-family:'JetBrains Mono', monospace; overflow:hidden;
 }
-
-/* ---------- LOBBY BACKGROUND ---------- */
-
 #lobby{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  background:
-    radial-gradient(circle at 50% 20%, rgba(159,239,0,0.08), transparent 60%),
-    radial-gradient(circle at 20% 80%, rgba(209,48,47,0.05), transparent 60%),
-    var(--bg);
+  position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(circle at 50% 20%, rgba(159,239,0,0.08), transparent 60%),
+              radial-gradient(circle at 20% 80%, rgba(209,48,47,0.05), transparent 60%), var(--bg);
+  z-index: 100;
 }
-
-/* ---------- LOBBY CARD ---------- */
-
 .lobby-card{
-  width:min(440px,90vw);
-  background:linear-gradient(145deg, rgba(18,22,15,0.95), rgba(10,13,10,0.9));
-  border:1px solid var(--panel-border);
-  padding:36px 32px 28px;
-  position:relative;
-
-  box-shadow:
-    0 25px 70px rgba(0,0,0,0.65),
-    inset 0 1px 0 rgba(255,255,255,0.03);
+  width:min(440px,90vw); background:linear-gradient(145deg, rgba(18,22,15,0.95), rgba(10,13,10,0.9));
+  border:1px solid var(--panel-border); padding:36px 32px 28px; position:relative;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.03);
 }
-
 .lobby-card::before{
-  content:"";
-  position:absolute;
-  left:0;
-  right:0;
-  top:0;
-  height:3px;
+  content:""; position:absolute; left:0; right:0; top:0; height:3px;
   background:linear-gradient(90deg,var(--blood),var(--acid));
 }
-
-/* ---------- TEXT ---------- */
-
-.display{
-  font-family:'Oswald',sans-serif;
-  text-transform:uppercase;
-  letter-spacing:0.04em;
-}
-
+.eyebrow { font-size:13px; color:var(--muted); margin-bottom:8px; letter-spacing:1px; }
 h1.title{
-  font-family:'Oswald',sans-serif;
-  font-size:44px;
-  margin:0 0 6px;
-  line-height:0.95;
+  font-family:'Oswald',sans-serif; font-size:44px; margin:0 0 6px; line-height:0.95;
   text-shadow:0 0 18px rgba(159,239,0,0.25);
 }
-
-h1.title span{
-  color:var(--acid);
+h1.title span { color:var(--acid); }
+.sub { margin:12px 0 24px; font-size:14px; color:var(--muted); line-height:1.4; }
+.field-label {
+  font-size:12px; color:var(--muted); margin:18px 0 6px 4px;
+  text-transform:uppercase; letter-spacing:1px;
 }
-
-/* ---------- INPUTS ---------- */
-
-input#nameInput,
-input#roomInput{
-  width:100%;
-  background:#090b07;
-  border:1px solid var(--panel-border);
-  color:var(--bone);
-  font-size:15px;
-  padding:12px 14px;
-  outline:none;
-  margin-bottom:14px;
+input#nameInput, input#roomInput{
+  width:100%; background:#090b07; border:1px solid var(--panel-border);
+  color:var(--bone); font-size:15px; padding:12px 14px; outline:none; margin-bottom:14px;
 }
-
 input:focus{
-  border-color:var(--acid);
-  box-shadow:0 0 12px rgba(159,239,0,0.2);
+  border-color:var(--acid); box-shadow:0 0 12px rgba(159,239,0,0.2);
 }
-
-/* ---------- BUTTON ---------- */
-
 button#joinBtn{
-  width:100%;
-  padding:13px;
-  border:none;
-  cursor:pointer;
-
-  background:var(--acid);
-  color:#0a0d0a;
-
-  font-family:'Oswald',sans-serif;
-  font-weight:700;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-
-  transition:0.15s ease;
+  width:100%; padding:13px; border:none; cursor:pointer; background:var(--acid);
+  color:#0a0d0a; font-family:'Oswald',sans-serif; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase; transition:0.15s ease;
 }
+button#joinBtn:hover{ filter:brightness(1.1); transform:translateY(-1px); }
+#connStatus { margin-top:12px; text-align:center; font-size:13px; min-height:22px; }
+#connStatus.connecting { color:#ffcc00; }
+#connStatus.success { color:var(--acid); }
+#connStatus.error { color:var(--blood); }
 
-button#joinBtn:hover{
-  filter:brightness(1.1);
-  transform:translateY(-1px);
-}
-
-button#joinBtn:active{
-  transform:translateY(0px);
-}
-
-/* ---------- HUD ---------- */
-
-.stat-block{
-  background:rgba(10,13,10,0.7);
-  border:1px solid var(--panel-border);
-  padding:8px 14px;
-}
-
-.wave-label{
-  font-family:'Oswald',sans-serif;
-  color:var(--acid);
-}
-
-.room-label b{
-  color:var(--bone);
-}
-
-/* ---------- HEALTH ---------- */
-
-#healthBar .fill{
-  background:linear-gradient(90deg,var(--blood),var(--acid));
-}
-
-/* ---------- FEED ---------- */
-
-.feed-item{
-  background:rgba(10,13,10,0.7);
-  border-left:3px solid var(--acid);
-  padding:5px 10px;
-}
-
-/* ---------- CHAT ---------- */
-
-#chatLog{
-  background:rgba(10,13,10,0.7);
-  border:1px solid var(--panel-border);
-}
-
-/* ---------- CENTER MSG ---------- */
-
-.center-msg .big{
-  color:var(--acid);
-  text-shadow:0 0 18px rgba(159,239,0,0.3);
-}
-
-.center-msg .big.danger{
-  color:var(--blood);
-}
-
-/* ---------- DAMAGE ---------- */
-
-#damageVignette{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-}
-
+#gameWrap { display:none; position:fixed; inset:0; }
+#canvasFrame { position:relative; width:100%; height:100%; background:#000; display:flex; align-items:center; justify-content:center; }
+#game { image-rendering:pixelated; border:1px solid #222; }
 </style>
 </head>
-
 <body>
 
-<!-- ORIGINAL HTML UNTOUCHED -->
 <div id="lobby">
   <div class="lobby-card">
     <div class="eyebrow">Signal lost — outskirts sector</div>
     <h1 class="title">OUT<span>BREAK</span></h1>
     <div class="sub">Online co-op wave survival. Team up, hold the line, don't run out of lives.</div>
-
+    
     <div class="field-label">Callsign</div>
-    <input id="nameInput" maxlength="14" placeholder="Your name" />
-
+    <input id="nameInput" maxlength="14" placeholder="Your name" value="Nyx" />
+    
     <div class="field-label">Room code (optional)</div>
     <input id="roomInput" maxlength="8" placeholder="Leave blank to start a new match" />
-
+    
     <button id="joinBtn">Drop In</button>
     <div id="connStatus"></div>
   </div>
@@ -228,12 +93,115 @@ button#joinBtn:active{
 <div id="gameWrap">
   <div id="canvasFrame">
     <canvas id="game" width="1600" height="900"></canvas>
-    <div id="hud"></div>
   </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="/client.js"></script>
+<script>
+// ====================== REAL CONNECTION ======================
+const connStatus = document.getElementById('connStatus');
+const lobby = document.getElementById('lobby');
+const gameWrap = document.getElementById('gameWrap');
+const joinBtn = document.getElementById('joinBtn');
+const nameInput = document.getElementById('nameInput');
+const roomInput = document.getElementById('roomInput');
 
+let socket = null;
+let playerName = "";
+let roomCode = "";
+
+function updateStatus(text, type = '') {
+  connStatus.textContent = text;
+  connStatus.className = type;
+}
+
+function connectToServer() {
+  updateStatus("CONNECTING...", "connecting");
+
+  // Force fresh connection
+  socket = io({
+    reconnection: true,
+    reconnectionAttempts: 8,
+    reconnectionDelay: 800,
+    timeout: 15000,
+    forceNew: true
+  });
+
+  socket.on("connect", () => {
+    updateStatus("CONNECTED — JOINING MATCH", "success");
+    socket.emit("join", { 
+      name: playerName, 
+      room: roomCode || null 
+    });
+    
+    setTimeout(() => {
+      lobby.style.display = "none";
+      gameWrap.style.display = "block";
+      initGame();
+    }, 500);
+  });
+
+  socket.on("connect_error", (err) => {
+    console.error("Socket error:", err);
+    updateStatus("CONNECTION FAILED — CHECK SERVER", "error");
+  });
+
+  socket.on("disconnect", () => {
+    updateStatus("DISCONNECTED", "error");
+  });
+
+  // Example server messages
+  socket.on("gameStart", (data) => console.log("Game started:", data));
+  socket.on("error", (msg) => updateStatus("SERVER: " + msg, "error"));
+}
+
+joinBtn.addEventListener('click', () => {
+  playerName = (nameInput.value.trim() || "Nyx" + Math.floor(Math.random()*9999)).slice(0,14);
+  roomCode = roomInput.value.trim().toUpperCase();
+  
+  if (!playerName) {
+    updateStatus("ENTER A CALLSIGN", "error");
+    return;
+  }
+  
+  connectToServer();
+});
+
+// Keyboard support
+nameInput.addEventListener("keypress", e => { if (e.key === "Enter") joinBtn.click(); });
+roomInput.addEventListener("keypress", e => { if (e.key === "Enter") joinBtn.click(); });
+
+// Simple canvas placeholder (replace with your real game loop)
+function initGame() {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  let frame = 0;
+
+  function loop() {
+    ctx.fillStyle = '#0a0d0a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Fake visuals
+    ctx.fillStyle = '#9fef00';
+    ctx.fillRect(720 + Math.sin(frame/15)*80, 400, 120, 100);
+    
+    ctx.fillStyle = '#d1302f';
+    for (let i = 0; i < 8; i++) {
+      ctx.fillRect(200 + i*160, 380 + Math.cos(frame/12 + i)*60, 55, 90);
+    }
+    
+    ctx.fillStyle = '#e8e6df';
+    ctx.font = 'bold 32px Oswald';
+    ctx.fillText('WAVE 1 — HOLD THE LINE', 520, 120);
+    
+    frame++;
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// Auto-focus
+window.onload = () => nameInput.focus();
+</script>
 </body>
 </html>
