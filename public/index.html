@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,6 +72,7 @@
   }
   button#joinBtn:hover{ filter: brightness(1.12); transform: translateY(-1px); }
   button#joinBtn:active{ transform: translateY(0); }
+  button#joinBtn:disabled{ opacity: 0.6; cursor: default; transform:none; }
   .controls-hint{
     margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--panel-border);
     font-size: 11px; color: var(--muted); line-height: 1.8;
@@ -81,7 +83,7 @@
   /* ---------- Game ---------- */
   #gameWrap{ display:none; position:fixed; inset:0; align-items:center; justify-content:center; background: var(--bg); }
   #canvasFrame{ position:relative; width: min(96vw, 1600px); aspect-ratio: 16/9; }
-  canvas{ width:100%; height:100%; display:block; background:#0d120c; border: 1px solid var(--panel-border); }
+  canvas{ width:100%; height:100%; display:block; background:#0d120c; border: 1px solid var(--panel-border); cursor: crosshair; }
 
   #hud{ position:absolute; inset:0; pointer-events:none; font-family:'JetBrains Mono',monospace; }
   .hud-top{ position:absolute; top:14px; left:14px; right:14px; display:flex; justify-content:space-between; align-items:flex-start; }
@@ -111,6 +113,12 @@
   #healthBar .fill{ height:100%; background: linear-gradient(90deg, var(--blood), var(--acid)); width:100%; transition: width .15s; }
   #healthBar .lbl{ font-size:10px; color: var(--muted); margin-bottom:4px; letter-spacing:0.1em; }
 
+  #buffRow{ position:absolute; bottom: 40px; left: 14px; display:flex; gap:6px; }
+  .buff-chip{
+    font-size: 10px; letter-spacing: 0.06em; padding: 4px 8px;
+    background: rgba(10,13,10,0.8); border: 1px solid var(--panel-border);
+  }
+
   #downedOverlay{
     position:absolute; inset:0; background: rgba(90,10,10,0.28);
     display:none; align-items:center; justify-content:center;
@@ -132,6 +140,8 @@
   .feed-item.join{ border-left-color: #3fc7ff; }
   .feed-item.leave{ border-left-color: var(--muted); }
   .feed-item.wave{ border-left-color: #ffe14d; }
+  .feed-item.pickup{ border-left-color: #c58bff; }
+  .feed-item.kill{ border-left-color: var(--acid); }
   @keyframes feedIn{ from{ opacity:0; transform: translateX(12px);} to{opacity:1; transform:translateX(0);} }
   @keyframes feedOut{ to{ opacity:0; } }
 
@@ -202,6 +212,7 @@
           <div class="lbl">HEALTH</div>
           <div class="track"><div class="fill" id="healthFill"></div></div>
         </div>
+        <div id="buffRow"></div>
         <div id="downedOverlay">DOWNED — REVIVING...</div>
 
         <div id="chatPanel">
@@ -213,83 +224,6 @@
   </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script>
-// IMPROVED GAMEPLAY - CANVAS VISUALS
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-let gameTime = 0;
-let isInGame = false;
-
-function drawGameplay() {
-  if (!isInGame) return;
-
-  // Background
-  ctx.fillStyle = '#0a0f08';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Ground
-  ctx.fillStyle = '#11150f';
-  ctx.fillRect(0, 480, canvas.width, canvas.height - 480);
-
-  // Player
-  ctx.shadowColor = '#9fef00';
-  ctx.shadowBlur = 30;
-  ctx.fillStyle = '#9fef00';
-  ctx.fillRect(680, 400, 72, 125);           // body
-  ctx.fillStyle = '#e8e6df';
-  ctx.fillRect(705, 415, 32, 32);            // head
-  ctx.shadowBlur = 0;
-
-  // Gun
-  ctx.fillStyle = '#444';
-  ctx.fillRect(745, 455, 80, 14);
-
-  // Zombies
-  ctx.fillStyle = '#9c2a2a';
-  for (let i = 0; i < 10; i++) {
-    const x = 120 + i * 145 + Math.sin(gameTime / 8 + i) * 60;
-    const y = 490 + Math.cos(gameTime / 13 + i) * 40;
-    ctx.fillRect(x, y, 55, 130);
-    
-    // Eyes
-    ctx.fillStyle = '#ffdd88';
-    ctx.fillRect(x+12, y+38, 11, 11);
-    ctx.fillRect(x+35, y+38, 11, 11);
-  }
-  ctx.fillStyle = '#9c2a2a';
-
-  // Muzzle flash
-  if (Math.random() > 0.7) {
-    ctx.shadowColor = '#ffdd55';
-    ctx.shadowBlur = 40;
-    ctx.fillStyle = '#ffee99';
-    ctx.fillRect(810, 445, 95, 28);
-    ctx.shadowBlur = 0;
-  }
-
-  // Blood pools
-  ctx.fillStyle = 'rgba(180, 25, 25, 0.8)';
-  ctx.fillRect(980, 610, 140, 45);
-  ctx.fillRect(1320, 570, 110, 55);
-
-  gameTime++;
-  requestAnimationFrame(drawGameplay);
-}
-
-// Join button override
-document.getElementById('joinBtn').addEventListener('click', function() {
-  const status = document.getElementById('connStatus');
-  status.textContent = "CONNECTING...";
-
-  setTimeout(() => {
-    document.getElementById('lobby').style.display = 'none';
-    document.getElementById('gameWrap').style.display = 'flex';
-    isInGame = true;
-    drawGameplay();
-  }, 700);
-});
-</script>
-
 <script src="/client.js"></script>
 </body>
 </html>
