@@ -46,53 +46,6 @@ const OBSTACLES = [
   { x: 740, y: 410, w: 120, h: 120 },
 ];
 
-// ---- Zombie variants ----
-const ZOMBIE_TYPES = {
-  normal: { radius: 15, speedMul: 1, healthMul: 1, damageMul: 1, color: '#5c8f2e' },
-  runner: { radius: 12, speedMul: 1.9, healthMul: 0.45, damageMul: 0.8, color: '#c7e63d' },
-  brute: { radius: 24, speedMul: 0.55, healthMul: 2.8, damageMul: 1.8, color: '#7a2323' },
-};
-
-function pickZombieType(wave) {
-  const weights = {
-    normal: Math.max(10 - wave, 3),
-    runner: 3 + Math.min(wave, 6),
-    brute: wave >= 3 ? Math.min(wave - 1, 6) : 0,
-  };
-  const total = weights.normal + weights.runner + weights.brute;
-  let r = Math.random() * total;
-  for (const type of Object.keys(weights)) {
-    if (r < weights[type]) return type;
-    r -= weights[type];
-  }
-  return 'normal';
-}
-
-// ---- Power-ups ----
-const POWERUP_TYPES = {
-  medkit: { label: 'Medkit', color: '#ff5da2', weight: 3 },
-  speed: { label: 'Speed Boost', color: '#3fc7ff', weight: 2 },
-  rapid: { label: 'Rapid Fire', color: '#ffe14d', weight: 2 },
-  damage: { label: 'Damage Boost', color: '#ff8a3d', weight: 2 },
-  shotgun: { label: 'Shotgun Rounds', color: '#c58bff', weight: 2 },
-};
-const POWERUP_RADIUS = 16;
-const POWERUP_MAX_ON_MAP = 4;
-const POWERUP_SPAWN_INTERVAL_MS = 7000;
-const BUFF_DURATION_MS = 9000;
-const SHOTGUN_DURATION_MS = 11000;
-
-function pickPowerupType() {
-  const entries = Object.entries(POWERUP_TYPES);
-  const total = entries.reduce((s, [, v]) => s + v.weight, 0);
-  let r = Math.random() * total;
-  for (const [type, cfg] of entries) {
-    if (r < cfg.weight) return type;
-    r -= cfg.weight;
-  }
-  return 'medkit';
-}
-
 // ---------------- Helpers ----------------
 function circleRectCollide(cx, cy, r, rect) {
   const closestX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
@@ -123,20 +76,6 @@ function safeSpawnPoint() {
   };
 }
 
-function randomOpenPoint(radius) {
-  const margin = 60;
-  for (let i = 0; i < 30; i++) {
-    const x = margin + Math.random() * (WORLD_W - margin * 2);
-    const y = margin + Math.random() * (WORLD_H - margin * 2);
-    let blocked = false;
-    for (const o of OBSTACLES) {
-      if (circleRectCollide(x, y, radius + 10, o)) { blocked = true; break; }
-    }
-    if (!blocked) return { x, y };
-  }
-  return { x: WORLD_W / 2, y: WORLD_H / 2 };
-}
-
 function escapeText(str) {
   return String(str).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
 }
@@ -148,17 +87,14 @@ class Room {
     this.players = {};
     this.zombies = [];
     this.bullets = [];
-    this.powerups = [];
     this.nextZombieId = 1;
     this.nextBulletId = 1;
-    this.nextPowerupId = 1;
     this.wave = 1;
     this.lives = MAX_LIVES;
     this.waveState = 'lobby'; // lobby | intermission | spawning | active | gameover
     this.waveTimer = 0;
     this.zombiesToSpawn = 0;
     this.spawnAccumulator = 0;
-    this.powerupTimer = POWERUP_SPAWN_INTERVAL_MS;
     this.gameStarted = false;
     this.interval = null;
   }
@@ -179,13 +115,11 @@ class Room {
   reset() {
     this.zombies = [];
     this.bullets = [];
-    this.powerups = [];
     this.wave = 1;
     this.lives = MAX_LIVES;
     this.waveState = 'lobby';
     this.waveTimer = 0;
     this.zombiesToSpawn = 0;
-    this.powerupTimer = POWERUP_SPAWN_INTERVAL_MS;
     this.gameStarted = false;
     for (const id in this.players) this.respawnPlayer(this.players[id]);
   }
@@ -203,45 +137,9 @@ class Room {
     else if (edge === 1) { x = Math.random() * WORLD_W; y = WORLD_H + 30; }
     else if (edge === 2) { x = -30; y = Math.random() * WORLD_H; }
     else { x = WORLD_W + 30; y = Math.random() * WORLD_H; }
-
-    const type = pickZombieType(this.wave);
-    const cfg = ZOMBIE_TYPES[type];
-    const speed = (ZOMBIE_BASE_SPEED + Math.min(this.wave * 4, 90) + Math.random() * 20) * cfg.speedMul;
-    const health = (ZOMBIE_BASE_HEALTH + this.wave * 12) * cfg.healthMul;
-    const damage = ZOMBIE_CONTACT_DAMAGE * cfg.damageMul;
-    this.zombies.push({
-      id: this.nextZombieId++, x, y, type, speed, health, maxHealth: health,
-      damage, radius: cfg.radius, lastHit: 0,
-    });
-  }
-
-  spawnPowerup() {
-    if (this.powerups.length >= POWERUP_MAX_ON_MAP) return;
-    const type = pickPowerupType();
-    const pt = randomOpenPoint(POWERUP_RADIUS);
-    this.powerups.push({ id: this.nextPowerupId++, type, x: pt.x, y: pt.y });
-  }
-
-  applyPowerup(p, type) {
-    const now = Date.now();
-    switch (type) {
-      case 'medkit':
-        p.health = Math.min(PLAYER_MAX_HEALTH, p.health + 50);
-        break;
-      case 'speed':
-        p.buffs.speed = now + BUFF_DURATION_MS;
-        break;
-      case 'rapid':
-        p.buffs.rapid = now + BUFF_DURATION_MS;
-        break;
-      case 'damage':
-        p.buffs.damage = now + BUFF_DURATION_MS;
-        break;
-      case 'shotgun':
-        p.buffs.shotgun = now + SHOTGUN_DURATION_MS;
-        break;
-    }
-    this.feed(`${p.name} grabbed ${POWERUP_TYPES[type].label}`, 'pickup');
+    const speed = ZOMBIE_BASE_SPEED + Math.min(this.wave * 4, 90) + Math.random() * 20;
+    const health = ZOMBIE_BASE_HEALTH + this.wave * 12;
+    this.zombies.push({ id: this.nextZombieId++, x, y, speed, health, maxHealth: health, lastHit: 0 });
   }
 
   feed(text, type = 'info') {
@@ -275,19 +173,6 @@ function destroyRoomIfEmpty(room) {
   }
 }
 
-function makeBullet(room, p, angle, damage) {
-  return {
-    id: room.nextBulletId++,
-    x: p.x + Math.cos(angle) * (PLAYER_RADIUS + 6),
-    y: p.y + Math.sin(angle) * (PLAYER_RADIUS + 6),
-    vx: Math.cos(angle) * BULLET_SPEED,
-    vy: Math.sin(angle) * BULLET_SPEED,
-    life: BULLET_LIFE,
-    damage,
-    owner: p.id,
-  };
-}
-
 // ---------------- Networking ----------------
 io.on('connection', (socket) => {
   socket.on('join', ({ name, room: roomCodeRaw } = {}) => {
@@ -314,7 +199,6 @@ io.on('connection', (socket) => {
       input: { up: false, down: false, left: false, right: false },
       lastShot: 0,
       lastHit: 0,
-      buffs: { speed: 0, rapid: 0, damage: 0, shotgun: 0 },
     };
 
     socket.data.roomCode = code;
@@ -356,24 +240,17 @@ io.on('connection', (socket) => {
     const p = room.players[socket.id];
     if (!p || p.downed || room.waveState === 'gameover' || room.waveState === 'lobby') return;
     const now = Date.now();
-    const rapidActive = p.buffs.rapid > now;
-    const cooldown = SHOOT_COOLDOWN_MS * (rapidActive ? 0.5 : 1);
-    if (now - p.lastShot < cooldown) return;
+    if (now - p.lastShot < SHOOT_COOLDOWN_MS) return;
     p.lastShot = now;
-
-    const dmg = BULLET_DAMAGE * (p.buffs.damage > now ? 2 : 1);
-    const shotgunActive = p.buffs.shotgun > now;
-
-    if (shotgunActive) {
-      const pellets = 5;
-      const spread = 0.5;
-      for (let i = 0; i < pellets; i++) {
-        const off = -spread / 2 + (spread / (pellets - 1)) * i;
-        room.bullets.push(makeBullet(room, p, p.angle + off, Math.round(dmg * 0.55)));
-      }
-    } else {
-      room.bullets.push(makeBullet(room, p, p.angle, dmg));
-    }
+    room.bullets.push({
+      id: room.nextBulletId++,
+      x: p.x + Math.cos(p.angle) * (PLAYER_RADIUS + 6),
+      y: p.y + Math.sin(p.angle) * (PLAYER_RADIUS + 6),
+      vx: Math.cos(p.angle) * BULLET_SPEED,
+      vy: Math.sin(p.angle) * BULLET_SPEED,
+      life: BULLET_LIFE,
+      owner: socket.id,
+    });
   });
 
   socket.on('chat', (text) => {
@@ -417,8 +294,7 @@ function tickRoom(room) {
     if (dx !== 0 || dy !== 0) {
       const len = Math.hypot(dx, dy);
       dx /= len; dy /= len;
-      const speed = PLAYER_SPEED * (p.buffs.speed > now ? 1.35 : 1);
-      moveWithCollision(p, p.x + dx * speed * dt, p.y + dy * speed * dt, PLAYER_RADIUS);
+      moveWithCollision(p, p.x + dx * PLAYER_SPEED * dt, p.y + dy * PLAYER_SPEED * dt, PLAYER_RADIUS);
     }
   }
 
@@ -467,10 +343,10 @@ function tickRoom(room) {
       if (target) {
         const dx = target.x - z.x, dy = target.y - z.y;
         const len = Math.hypot(dx, dy) || 1;
-        moveWithCollision(z, z.x + (dx / len) * z.speed * dt, z.y + (dy / len) * z.speed * dt, z.radius);
-        if (best < z.radius + PLAYER_RADIUS + 4 && now - (target.lastHit || 0) > ZOMBIE_CONTACT_COOLDOWN_MS) {
+        moveWithCollision(z, z.x + (dx / len) * z.speed * dt, z.y + (dy / len) * z.speed * dt, ZOMBIE_RADIUS);
+        if (best < ZOMBIE_RADIUS + PLAYER_RADIUS + 4 && now - (target.lastHit || 0) > ZOMBIE_CONTACT_COOLDOWN_MS) {
           target.lastHit = now;
-          target.health -= z.damage;
+          target.health -= ZOMBIE_CONTACT_DAMAGE;
           if (target.health <= 0) {
             target.downed = true;
             target.respawnAt = now + RESPAWN_MS;
@@ -495,31 +371,6 @@ function tickRoom(room) {
     }
   }
 
-  // Power-up spawning
-  if (room.waveState !== 'lobby' && room.waveState !== 'gameover') {
-    room.powerupTimer -= TICK_MS;
-    if (room.powerupTimer <= 0) {
-      room.spawnPowerup();
-      room.powerupTimer = POWERUP_SPAWN_INTERVAL_MS + Math.random() * 3000;
-    }
-  }
-
-  // Power-up pickup
-  if (room.powerups.length) {
-    for (const id in room.players) {
-      const p = room.players[id];
-      if (p.downed) continue;
-      room.powerups = room.powerups.filter((pu) => {
-        const d = Math.hypot(p.x - pu.x, p.y - pu.y);
-        if (d < PLAYER_RADIUS + POWERUP_RADIUS) {
-          room.applyPowerup(p, pu.type);
-          return false;
-        }
-        return true;
-      });
-    }
-  }
-
   // Bullets
   room.bullets = room.bullets.filter((b) => {
     b.x += b.vx * dt;
@@ -532,15 +383,15 @@ function tickRoom(room) {
     }
     for (const z of room.zombies) {
       const d = Math.hypot(z.x - b.x, z.y - b.y);
-      if (d < z.radius + BULLET_RADIUS) {
-        z.health -= b.damage;
+      if (d < ZOMBIE_RADIUS + BULLET_RADIUS) {
+        z.health -= BULLET_DAMAGE;
         z.lastHit = now;
         if (z.health <= 0) {
           z.dead = true;
           const owner = room.players[b.owner];
           if (owner) {
             owner.kills++;
-            room.feed(`${owner.name} dropped a ${z.type}`, 'kill');
+            room.feed(`${owner.name} dropped a zombie`, 'kill');
           }
         }
         return false;
@@ -568,18 +419,9 @@ function tickRoom(room) {
       color: p.color,
       kills: p.kills,
       downed: p.downed,
-      buffs: {
-        speed: Math.max(0, p.buffs.speed - now),
-        rapid: Math.max(0, p.buffs.rapid - now),
-        damage: Math.max(0, p.buffs.damage - now),
-        shotgun: Math.max(0, p.buffs.shotgun - now),
-      },
     })),
-    zombies: room.zombies.map((z) => ({
-      id: z.id, x: z.x, y: z.y, type: z.type, radius: z.radius, health: z.health, maxHealth: z.maxHealth,
-    })),
+    zombies: room.zombies.map((z) => ({ id: z.id, x: z.x, y: z.y, health: z.health, maxHealth: z.maxHealth })),
     bullets: room.bullets.map((b) => ({ id: b.id, x: b.x, y: b.y })),
-    powerups: room.powerups.map((pu) => ({ id: pu.id, type: pu.type, x: pu.x, y: pu.y })),
   });
 }
 
