@@ -224,9 +224,7 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-// YOUR ORIGINAL CLIENT.JS WILL STILL LOAD
-// BUT WE ADD A FALLBACK GAMEPLAY SO IT ISN'T BLANK
-
+// IMPROVED GAMEPLAY VISUALS
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let gameTime = 0;
@@ -234,61 +232,74 @@ let isInGame = false;
 
 function drawGameplay() {
   if (!isInGame) return;
-  
+
+  // Background
   ctx.fillStyle = '#0a0f08';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Ground
-  ctx.fillStyle = '#11150f';
-  ctx.fillRect(0, 520, canvas.width, canvas.height - 520);
+  ctx.fillStyle = '#0f140d';
+  ctx.fillRect(0, 480, canvas.width, canvas.height - 480);
 
-  // Player (you)
+  // Fog / atmosphere
+  ctx.fillStyle = 'rgba(10,15,8,0.6)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Player (bright green survivor)
   ctx.save();
+  ctx.shadowColor = '#9fef00';
+  ctx.shadowBlur = 25;
   ctx.fillStyle = '#9fef00';
-  ctx.fillRect(720, 430, 55, 100);
+  ctx.fillRect(680, 410, 70, 110);           // body
   ctx.fillStyle = '#e8e6df';
-  ctx.fillRect(735, 455, 25, 25); // head
+  ctx.fillRect(705, 425, 28, 28);            // head
   ctx.restore();
 
-  // Zombies
-  ctx.fillStyle = '#8b1e1e';
-  for (let i = 0; i < 8; i++) {
-    const offset = Math.sin(gameTime / 12 + i) * 45;
-    ctx.fillRect(180 + i * 165 + offset, 510 + Math.cos(gameTime / 10 + i) * 25, 50, 110);
+  // Gun
+  ctx.fillStyle = '#555';
+  ctx.fillRect(740, 455, 65, 12);
+
+  // Enemies (red zombies)
+  ctx.fillStyle = '#9c2a2a';
+  for (let i = 0; i < 9; i++) {
+    const x = 150 + (i * 155) + Math.sin(gameTime / 9 + i * 1.3) * 55;
+    const y = 490 + Math.cos(gameTime / 11 + i) * 35;
+    ctx.fillRect(x, y, 58, 125);
+    
+    // eyes
+    ctx.fillStyle = '#ffdd77';
+    ctx.fillRect(x + 15, y + 35, 10, 10);
+    ctx.fillRect(x + 35, y + 35, 10, 10);
   }
 
-  // Muzzle flash
-  if (Math.random() > 0.8) {
-    ctx.fillStyle = '#ffee88';
-    ctx.fillRect(765, 465, 50, 18);
+  // Gunfire effect
+  if (Math.random() > 0.75) {
+    ctx.fillStyle = '#ffffaa';
+    ctx.shadowColor = '#ffcc00';
+    ctx.shadowBlur = 30;
+    ctx.fillRect(780, 445, 80, 22);
   }
 
-  // Blood effects
-  ctx.fillStyle = 'rgba(209, 48, 47, 0.7)';
-  ctx.fillRect(1050, 580, 40, 25);
-  ctx.fillRect(1350, 540, 35, 30);
+  // Blood splatter on ground
+  ctx.fillStyle = 'rgba(180,20,20,0.75)';
+  ctx.fillRect(950, 620, 120, 35);
+  ctx.fillRect(1250, 580, 90, 45);
 
   gameTime++;
   requestAnimationFrame(drawGameplay);
 }
 
-// Override join to trigger visual gameplay
-const originalJoinBtn = document.getElementById('joinBtn');
-const newJoinBtn = originalJoinBtn.cloneNode(true);
-originalJoinBtn.parentNode.replaceChild(newJoinBtn, originalJoinBtn);
-
-newJoinBtn.addEventListener('click', () => {
+// JOIN BUTTON
+document.getElementById('joinBtn').addEventListener('click', () => {
   const connStatus = document.getElementById('connStatus');
   connStatus.textContent = "CONNECTING...";
-  
-  // Keep your original socket.io from client.js
-  // But force the visual game to start
+
   setTimeout(() => {
     document.getElementById('lobby').style.display = 'none';
     document.getElementById('gameWrap').style.display = 'flex';
     isInGame = true;
     drawGameplay();
-  }, 600);
+  }, 800);
 });
 </script>
 
