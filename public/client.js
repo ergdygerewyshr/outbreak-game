@@ -23,11 +23,16 @@ const playerCountLabelEl = document.getElementById('playerCountLabel');
 const killFeedEl = document.getElementById('killFeed');
 const chatLogEl = document.getElementById('chatLog');
 const chatInputEl = document.getElementById('chatInput');
+const buffRowEl = document.getElementById('buffRow');
 
 let myId = null;
 let world = { w: 1600, h: 900, obstacles: [] };
 let latestState = null;
 let joined = false;
+
+const POWERUP_COLORS = { medkit: '#ff5da2', speed: '#3fc7ff', rapid: '#ffe14d', damage: '#ff8a3d', shotgun: '#c58bff' };
+const POWERUP_LABELS = { medkit: 'MED', speed: 'SPD', rapid: 'RPD', damage: 'DMG', shotgun: 'SHG' };
+const BUFF_NAMES = { speed: 'SPEED', rapid: 'RAPID FIRE', damage: 'DAMAGE x2', shotgun: 'SHOTGUN' };
 
 // ---------------- Join flow ----------------
 joinBtn.addEventListener('click', doJoin);
@@ -40,16 +45,27 @@ function doJoin() {
   const room = roomInput.value.trim();
   socket.emit('join', { name, room });
   connStatus.textContent = 'Connecting...';
+  joinBtn.disabled = true;
 }
 
 socket.on('connect', () => { connStatus.textContent = ''; });
-socket.on('disconnect', () => { connStatus.textContent = 'Disconnected from server.'; });
+socket.on('disconnect', () => {
+  connStatus.textContent = 'Disconnected from server.';
+  joinBtn.disabled = false;
+});
+socket.on('connect_error', () => {
+  connStatus.textContent = 'Connection failed. Retrying...';
+  joinBtn.disabled = false;
+});
 
 socket.on('joined', (data) => {
   joined = true;
   myId = data.id;
   world = data.world;
   roomCodeLabelEl.textContent = data.roomCode;
+  roomInput.value = data.roomCode;
+  connStatus.textContent = '';
+  joinBtn.disabled = false;
   lobby.style.display = 'none';
   gameWrap.style.display = 'flex';
   requestAnimationFrame(loop);
@@ -141,8 +157,9 @@ canvas.addEventListener('mousemove', (e) => {
   const me = myId && latestState ? latestState.players.find((p) => p.id === myId) : null;
   if (me) mouseAngle = Math.atan2(my - me.y, mx - me.x);
 });
-canvas.addEventListener('mousedown', () => { firing = true; });
+canvas.addEventListener('mousedown', (e) => { if (e.button === 0) firing = true; });
 window.addEventListener('mouseup', () => { firing = false; });
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // Send input to server at a steady rate
 setInterval(() => {
@@ -174,25 +191,47 @@ function drawObstacles() {
   }
 }
 
-function drawZombie(z) {
+function drawPowerup(pu, t) {
+  const bob = Math.sin(t / 300 + pu.id) * 4;
+  const color = POWERUP_COLORS[pu.type] || '#fff';
   ctx.save();
-  ctx.translate(z.x, z.y);
-  ctx.fillStyle = '#5c8f2e';
+  ctx.translate(pu.x, pu.y + bob);
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(0, 0, 15, 0, Math.PI * 2);
   ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#0a0d0a';
+  ctx.font = 'bold 10px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(POWERUP_LABELS[pu.type] || '?', 0, 1);
+  ctx.restore();
+}
+
+function drawZombie(z) {
+  ctx.save();
+  ctx.translate(z.x, z.y);
+  const bodyColor = z.type === 'runner' ? '#c7e63d' : z.type === 'brute' ? '#7a2323' : '#5c8f2e';
+  ctx.fillStyle = bodyColor;
+  ctx.beginPath();
+  ctx.arc(0, 0, z.radius, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = '#2f4a17';
   ctx.beginPath();
-  ctx.arc(-5, -5, 4, 0, Math.PI * 2);
-  ctx.arc(5, -5, 4, 0, Math.PI * 2);
+  ctx.arc(-z.radius * 0.33, -z.radius * 0.33, z.radius * 0.27, 0, Math.PI * 2);
+  ctx.arc(z.radius * 0.33, -z.radius * 0.33, z.radius * 0.27, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
   const pct = Math.max(0, z.health / z.maxHealth);
+  const w = z.radius * 2;
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.fillRect(z.x - 16, z.y - 26, 32, 4);
+  ctx.fillRect(z.x - w / 2, z.y - z.radius - 11, w, 4);
   ctx.fillStyle = '#d1302f';
-  ctx.fillRect(z.x - 16, z.y - 26, 32 * pct, 4);
+  ctx.fillRect(z.x - w / 2, z.y - z.radius - 11, w * pct, 4);
 }
 
 function drawPlayer(p) {
@@ -200,10 +239,13 @@ function drawPlayer(p) {
   ctx.translate(p.x, p.y);
   ctx.globalAlpha = p.downed ? 0.35 : 1;
   ctx.rotate(p.angle);
+  ctx.shadowColor = p.color;
+  ctx.shadowBlur = p.id === myId ? 18 : 6;
   ctx.fillStyle = p.color;
   ctx.beginPath();
   ctx.arc(0, 0, 16, 0, Math.PI * 2);
   ctx.fill();
+  ctx.shadowBlur = 0;
   ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.fillRect(10, -3, 14, 6);
   ctx.restore();
@@ -223,9 +265,12 @@ function drawPlayer(p) {
 
 function drawBullet(b) {
   ctx.fillStyle = '#ffe14d';
+  ctx.shadowColor = '#ffe14d';
+  ctx.shadowBlur = 6;
   ctx.beginPath();
   ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
   ctx.fill();
+  ctx.shadowBlur = 0;
 }
 
 function updateHud(state) {
@@ -261,6 +306,11 @@ function updateHud(state) {
   if (me) {
     healthFillEl.style.width = Math.max(0, me.health) + '%';
     downedOverlayEl.style.display = me.downed ? 'flex' : 'none';
+
+    const active = Object.entries(me.buffs || {}).filter(([, ms]) => ms > 0);
+    buffRowEl.innerHTML = active.map(([type, ms]) =>
+      `<div class="buff-chip" style="color:${POWERUP_COLORS[type] || '#9fef00'}">${BUFF_NAMES[type] || type} ${Math.ceil(ms / 1000)}s</div>`
+    ).join('');
   }
 }
 
@@ -268,11 +318,12 @@ function escapeHtml(str) {
   return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function loop() {
+function loop(t) {
   if (latestState) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
     drawObstacles();
+    for (const pu of latestState.powerups) drawPowerup(pu, t || 0);
     for (const z of latestState.zombies) drawZombie(z);
     for (const p of latestState.players) drawPlayer(p);
     for (const b of latestState.bullets) drawBullet(b);
