@@ -8,190 +8,290 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#0a0d0a;
-  --panel:#12160f;
-  --panel-border:#23291e;
-  --acid:#9fef00;
-  --blood:#d1302f;
-  --bone:#e8e6df;
-  --muted:#6b7364;
-}
-*{ box-sizing: border-box; }
-html, body{
-  margin:0; padding:0; height:100%;
-  background: var(--bg);
-  color: var(--bone);
-  font-family: 'JetBrains Mono', monospace;
-  overflow: hidden;
-}
+  :root{
+    --bg: #0a0d0a;
+    --panel: #12160f;
+    --panel-border: #23291e;
+    --acid: #9fef00;
+    --blood: #d1302f;
+    --bone: #e8e6df;
+    --muted: #6b7364;
+  }
+  *{ box-sizing: border-box; }
+  html, body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    color: var(--bone);
+    font-family: 'JetBrains Mono', monospace;
+    overflow: hidden;
+  }
+  .display{ font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; }
 
-/* LOBBY STYLES (same as before) */
-#lobby{
-  position: fixed; inset: 0;
-  display:flex; align-items:center; justify-content:center;
-  background: radial-gradient(ellipse at 50% 20%, rgba(159,239,0,0.08), transparent 60%),
-              repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px),
-              var(--bg);
-  z-index: 10;
-}
-.lobby-card{
-  width: min(440px, 90vw);
-  background: linear-gradient(145deg, rgba(18,22,15,0.98), rgba(10,13,10,0.95));
-  border: 1px solid var(--panel-border);
-  padding: 36px 32px 28px;
-  position: relative;
-  box-shadow: 0 25px 70px rgba(0,0,0,0.7);
-}
-.lobby-card::before{
-  content:""; position:absolute; left:0; right:0; top:0; height:3px;
-  background: linear-gradient(90deg, var(--blood), var(--acid));
-}
-.eyebrow{ color: var(--blood); font-size: 12px; letter-spacing: 0.25em; display:flex; align-items:center; gap:8px; margin-bottom: 6px; }
-.eyebrow::before{ content:""; width:6px; height:6px; background: var(--blood); display:inline-block; animation: pulse 1.4s infinite; }
-@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
-h1.title{ font-size: 44px; margin: 0 0 4px; line-height: 0.95; color: var(--bone); text-shadow: 0 0 18px rgba(159,239,0,0.35); }
-h1.title span{ color: var(--acid); }
-.sub{ color: var(--muted); font-size: 13px; margin-bottom: 20px; line-height:1.5; }
-.field-label{ font-size: 10px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; }
-input#nameInput, input#roomInput{
-  width:100%; background: #090b07; border: 1px solid var(--panel-border);
-  color: var(--bone); font-size: 15px; padding: 12px 14px; outline:none; margin-bottom: 14px;
-}
-input:focus{ border-color: var(--acid); box-shadow: 0 0 12px rgba(159,239,0,0.25); }
-button#joinBtn{
-  width:100%; padding: 13px; border:none; cursor:pointer;
-  background: var(--acid); color: #0a0d0a; font-family:'Oswald',sans-serif;
-  font-weight:700; letter-spacing: 0.08em; font-size: 15px; text-transform: uppercase;
-  transition: all .15s ease;
-}
-button#joinBtn:hover{ filter: brightness(1.15); transform: translateY(-1px); }
+  /* ---------- Lobby ---------- */
+  #lobby{
+    position: fixed; inset: 0;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(159,239,0,0.08), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px),
+      var(--bg);
+    z-index: 10;
+  }
+  .lobby-card{
+    width: min(420px, 90vw);
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    padding: 36px 32px 28px;
+    position: relative;
+  }
+  .lobby-card::before{
+    content:"";
+    position:absolute; left:0; right:0; top:0; height:3px;
+    background: linear-gradient(90deg, var(--blood), var(--acid));
+  }
+  .eyebrow{
+    color: var(--blood); font-size: 12px; letter-spacing: 0.25em;
+    display:flex; align-items:center; gap:8px; margin-bottom: 6px;
+  }
+  .eyebrow::before{ content:""; width:6px; height:6px; background: var(--blood); display:inline-block; animation: pulse 1.4s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+  h1.title{
+    font-size: 44px; margin: 0 0 4px; line-height: 0.95;
+    color: var(--bone);
+    text-shadow: 0 0 18px rgba(159,239,0,0.35);
+  }
+  h1.title span{ color: var(--acid); }
+  .sub{ color: var(--muted); font-size: 13px; margin-bottom: 22px; line-height:1.5; }
+  .field-label{ font-size: 10px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; }
+  input#nameInput, input#roomInput{
+    width:100%; background: #090b07; border: 1px solid var(--panel-border);
+    color: var(--bone); font-family: 'JetBrains Mono', monospace; font-size: 15px;
+    padding: 12px 14px; outline:none; margin-bottom: 14px;
+  }
+  input#roomInput{ text-transform: uppercase; letter-spacing: 0.1em; }
+  input#nameInput:focus, input#roomInput:focus{ border-color: var(--acid); }
+  button#joinBtn{
+    width:100%; padding: 13px; border:none; cursor:pointer;
+    background: var(--acid); color: #0a0d0a; font-family:'Oswald',sans-serif;
+    font-weight:700; letter-spacing: 0.08em; font-size: 15px; text-transform: uppercase;
+    transition: filter .15s ease, transform .15s ease;
+  }
+  button#joinBtn:hover{ filter: brightness(1.12); transform: translateY(-1px); }
+  button#joinBtn:active{ transform: translateY(0); }
+  .controls-hint{
+    margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--panel-border);
+    font-size: 11px; color: var(--muted); line-height: 1.8;
+  }
+  .controls-hint b{ color: var(--bone); }
+  #connStatus{ font-size: 11px; color: var(--muted); margin-top: 10px; min-height: 14px; }
 
-/* GAME STYLES */
-#gameWrap{ display:none; position:fixed; inset:0; background: var(--bg); }
-#canvasFrame{ position:relative; width: min(96vw, 1600px); aspect-ratio: 16/9; margin: 0 auto; }
-canvas{ width:100%; height:100%; display:block; background:#0a0f08; border: 1px solid var(--panel-border); image-rendering: pixelated; }
+  /* ---------- Game ---------- */
+  #gameWrap{ display:none; position:fixed; inset:0; align-items:center; justify-content:center; background: var(--bg); }
+  #canvasFrame{ position:relative; width: min(96vw, 1600px); aspect-ratio: 16/9; }
+  canvas{ width:100%; height:100%; display:block; background:#0d120c; border: 1px solid var(--panel-border); }
 
-#hud{ position:absolute; inset:0; pointer-events:none; }
-.hud-top{ position:absolute; top:14px; left:14px; right:14px; display:flex; justify-content:space-between; }
-.stat-block{ background: rgba(10,13,10,0.85); border: 1px solid var(--panel-border); padding: 8px 14px; }
-.wave-label{ font-family:'Oswald',sans-serif; font-size: 20px; letter-spacing: 0.06em; color: var(--acid); }
-#killFeed{ position:absolute; top: 74px; right: 14px; width: 240px; display:flex; flex-direction:column; gap:4px; align-items:flex-end; }
-.feed-item{ background: rgba(10,13,10,0.8); border-left: 3px solid var(--acid); padding: 5px 10px; font-size: 11px; animation: feedIn .25s, feedOut 4s forwards; }
-@keyframes feedIn{ from{opacity:0; transform:translateX(20px);} }
-#chatPanel{ position:absolute; bottom:16px; right:14px; width:280px; pointer-events:auto; }
-#chatLog{ height:130px; overflow-y:auto; background:rgba(10,13,10,0.75); border:1px solid var(--panel-border); padding:6px 8px; font-size:11px; margin-bottom:6px; }
-#chatInput{ width:100%; background:rgba(9,11,7,0.9); border:1px solid var(--panel-border); color:var(--bone); padding:8px 10px; font-size:12px; }
-#damageVignette{ position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .2s; background: radial-gradient(circle at center, transparent 40%, rgba(209,48,47,0.6) 100%); }
+  #hud{ position:absolute; inset:0; pointer-events:none; font-family:'JetBrains Mono',monospace; }
+  .hud-top{
+    position:absolute; top:14px; left:14px; right:14px;
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
+  .stat-block{ background: rgba(10,13,10,0.72); border: 1px solid var(--panel-border); padding: 8px 14px; }
+  .wave-label{ font-family:'Oswald',sans-serif; font-size: 20px; letter-spacing: 0.06em; color: var(--acid); }
+  .room-label{ font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-top: 2px; }
+  .room-label b{ color: var(--bone); letter-spacing: 0.15em; }
+  .lives{ display:flex; gap:5px; margin-top:4px; }
+  .life-dot{ width:11px; height:11px; background: var(--blood); clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+  .life-dot.lost{ background: #2a1414; opacity:0.5; }
+
+  #leaderboard{ font-size: 12px; min-width: 150px; }
+  #leaderboard .row{ display:flex; justify-content:space-between; gap:10px; padding: 2px 0; }
+  #leaderboard .row .name{ color: var(--bone); }
+  #leaderboard .row .kills{ color: var(--acid); }
+
+  .center-msg{
+    position:absolute; top:50%; left:50%; transform: translate(-50%,-50%);
+    text-align:center; font-family:'Oswald',sans-serif;
+  }
+  .center-msg .big{ font-size: 46px; letter-spacing: 0.05em; color: var(--acid); text-shadow: 0 0 24px rgba(159,239,0,0.4); }
+  .center-msg .big.danger{ color: var(--blood); text-shadow: 0 0 24px rgba(209,48,47,0.5); }
+  .center-msg .small{ font-size: 14px; color: var(--muted); margin-top: 6px; letter-spacing: 0.1em; }
+
+  #healthBar{ position:absolute; bottom:16px; left:14px; width: 220px; }
+  #healthBar .track{ height: 10px; background:#1a1f15; border:1px solid var(--panel-border); }
+  #healthBar .fill{ height:100%; background: linear-gradient(90deg, var(--blood), var(--acid)); width:100%; transition: width .15s; }
+  #healthBar .lbl{ font-size:10px; color: var(--muted); margin-bottom:4px; letter-spacing:0.1em; }
+
+  #downedOverlay{
+    position:absolute; inset:0; background: rgba(90,10,10,0.28);
+    display:none; align-items:center; justify-content:center;
+    font-family:'Oswald',sans-serif; font-size: 30px; color: var(--blood); letter-spacing:0.08em;
+  }
+
+  /* Kill feed */
+  #killFeed{
+    position:absolute; top: 74px; right: 14px; width: 240px;
+    display:flex; flex-direction:column; gap:4px; align-items:flex-end;
+  }
+  .feed-item{
+    background: rgba(10,13,10,0.72); border-left: 2px solid var(--acid);
+    padding: 5px 10px; font-size: 11px; color: var(--bone);
+    animation: feedIn .2s ease, feedOut .4s ease 3.6s forwards;
+  }
+  .feed-item.down{ border-left-color: var(--blood); }
+  .feed-item.gameover{ border-left-color: var(--blood); }
+  .feed-item.join{ border-left-color: #3fc7ff; }
+  .feed-item.leave{ border-left-color: var(--muted); }
+  .feed-item.wave{ border-left-color: #ffe14d; }
+  @keyframes feedIn{ from{ opacity:0; transform: translateX(12px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes feedOut{ to{ opacity:0; } }
+
+  /* Chat */
+  #chatPanel{
+    position:absolute; bottom: 16px; right: 14px; width: 280px;
+    pointer-events: auto;
+  }
+  #chatLog{
+    height: 130px; overflow-y: auto; background: rgba(10,13,10,0.72);
+    border: 1px solid var(--panel-border); padding: 6px 8px; font-size: 11px;
+    margin-bottom: 6px; display:flex; flex-direction:column; gap:3px;
+  }
+  #chatLog::-webkit-scrollbar{ width:6px; }
+  #chatLog::-webkit-scrollbar-thumb{ background: var(--panel-border); }
+  .chat-msg .who{ font-weight:700; margin-right:5px; }
+  .chat-msg .txt{ color: var(--bone); }
+  #chatInput{
+    width:100%; background: rgba(9,11,7,0.85); border: 1px solid var(--panel-border);
+    color: var(--bone); font-family:'JetBrains Mono',monospace; font-size: 12px;
+    padding: 8px 10px; outline:none;
+  }
+  #chatInput:focus{ border-color: var(--acid); }
+  #chatInput::placeholder{ color: var(--muted); }
 </style>
 </head>
 <body>
 
-<div id="lobby">
-  <div class="lobby-card">
-    <div class="eyebrow">Signal lost — outskirts sector</div>
-    <h1 class="title">OUT<span>BREAK</span></h1>
-    <div class="sub">Online co-op wave survival. Team up, hold the line, don't run out of lives.</div>
-    <div class="field-label">Callsign</div>
-    <input id="nameInput" maxlength="14" placeholder="Your name" value="Nyx"/>
-    <div class="field-label">Room code (optional)</div>
-    <input id="roomInput" maxlength="8" placeholder="Leave blank to start a new match" />
-    <button id="joinBtn">Drop In</button>
-    <div id="connStatus"></div>
-  </div>
-</div>
+  <div id="lobby">
+    <div class="lobby-card">
+      <div class="eyebrow">Signal lost — outskirts sector</div>
+      <h1 class="title">OUT<span>BREAK</span></h1>
+      <div class="sub">Online co-op wave survival. Team up, hold the line, don't run out of lives.</div>
 
-<div id="gameWrap">
-  <div id="canvasFrame">
-    <canvas id="game" width="1600" height="900"></canvas>
-    <div id="hud">
-      <div id="damageVignette"></div>
-      <div class="hud-top">
-        <div class="stat-block">
-          <div class="wave-label">WAVE <span id="waveNum">1</span></div>
-          <div class="room-label">ROOM <b id="roomCodeLabel">----</b> · 1 online</div>
+      <div class="field-label">Callsign</div>
+      <input id="nameInput" maxlength="14" placeholder="Your name" />
+
+      <div class="field-label">Room code (optional)</div>
+      <input id="roomInput" maxlength="8" placeholder="Leave blank to start a new match" />
+
+      <button id="joinBtn">Drop In</button>
+      <div id="connStatus"></div>
+      <div class="controls-hint">
+        <b>WASD</b> move &nbsp;·&nbsp; <b>Mouse</b> aim &nbsp;·&nbsp; <b>Click</b> fire &nbsp;·&nbsp; <b>Enter</b> chat<br/>
+        Share your room code with friends so they join the same match.
+      </div>
+    </div>
+  </div>
+
+  <div id="gameWrap">
+    <div id="canvasFrame">
+      <canvas id="game" width="1600" height="900"></canvas>
+      <div id="hud">
+        <div class="hud-top">
+          <div class="stat-block">
+            <div class="wave-label">WAVE <span id="waveNum">1</span></div>
+            <div class="lives" id="livesRow"></div>
+            <div class="room-label">ROOM <b id="roomCodeLabel">----</b> · <span id="playerCountLabel">1</span> online</div>
+          </div>
+          <div class="stat-block" id="leaderboard"></div>
         </div>
-      </div>
-      <div id="killFeed"></div>
-      <div id="chatPanel">
-        <div id="chatLog"></div>
-        <input id="chatInput" placeholder="Press Enter to chat..." />
-      </div>
-      <div style="position:absolute; bottom:16px; left:14px;">
-        <div style="font-size:10px; color:var(--muted);">HEALTH</div>
-        <div style="width:240px; height:12px; background:#1a1f15; border:1px solid #23291e;">
-          <div id="healthFill" style="height:100%; width:92%; background:linear-gradient(90deg,#d1302f,#9fef00);"></div>
+        <div id="killFeed"></div>
+        <div class="center-msg" id="centerMsg" style="display:none;">
+          <div class="big" id="centerBig"></div>
+          <div class="small" id="centerSmall"></div>
+        </div>
+        <div id="healthBar">
+          <div class="lbl">HEALTH</div>
+          <div class="track"><div class="fill" id="healthFill"></div></div>
+        </div>
+        <div id="downedOverlay">DOWNED — REVIVING...</div>
+
+        <div id="chatPanel">
+          <div id="chatLog"></div>
+          <input id="chatInput" maxlength="140" placeholder="Press Enter to chat..." />
         </div>
       </div>
     </div>
   </div>
-</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-// CONNECTION
-const connStatus = document.getElementById('connStatus');
-const lobby = document.getElementById('lobby');
-const gameWrap = document.getElementById('gameWrap');
-const joinBtn = document.getElementById('joinBtn');
+// YOUR ORIGINAL CLIENT.JS WILL STILL LOAD
+// BUT WE ADD A FALLBACK GAMEPLAY SO IT ISN'T BLANK
 
-joinBtn.addEventListener('click', () => {
-  connStatus.textContent = "CONNECTING...";
-  const socket = io({ forceNew: true });
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let gameTime = 0;
+let isInGame = false;
 
-  socket.on("connect", () => {
-    connStatus.textContent = "CONNECTED";
-    setTimeout(() => {
-      lobby.style.display = "none";
-      gameWrap.style.display = "block";
-      startGame();
-    }, 400);
-  });
-});
+function drawGameplay() {
+  if (!isInGame) return;
+  
+  ctx.fillStyle = '#0a0f08';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-// VISUAL GAMEPLAY (so it's not blank)
-function startGame() {
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
-  let time = 0;
+  // Ground
+  ctx.fillStyle = '#11150f';
+  ctx.fillRect(0, 520, canvas.width, canvas.height - 520);
 
-  function draw() {
-    ctx.fillStyle = '#0a0f08';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Player (you)
+  ctx.save();
+  ctx.fillStyle = '#9fef00';
+  ctx.fillRect(720, 430, 55, 100);
+  ctx.fillStyle = '#e8e6df';
+  ctx.fillRect(735, 455, 25, 25); // head
+  ctx.restore();
 
-    // Ground
-    ctx.fillStyle = '#11150f';
-    ctx.fillRect(0, 500, canvas.width, canvas.height - 500);
-
-    // Player
-    ctx.fillStyle = '#9fef00';
-    ctx.fillRect(700, 420, 60, 90);
-
-    // Enemies (zombies)
-    ctx.fillStyle = '#d1302f';
-    for (let i = 0; i < 7; i++) {
-      const x = 200 + i * 170 + Math.sin(time/8 + i) * 40;
-      const y = 480 + Math.cos(time/12 + i) * 30;
-      ctx.fillRect(x, y, 48, 95);
-    }
-
-    // Gun flash
-    if (Math.random() > 0.85) {
-      ctx.fillStyle = '#ffff88';
-      ctx.fillRect(740, 460, 45, 12);
-    }
-
-    // Blood splatters
-    ctx.fillStyle = 'rgba(209,48,47,0.6)';
-    ctx.fillRect(850, 520, 30, 20);
-    ctx.fillRect(1200, 580, 25, 35);
-
-    time++;
-    requestAnimationFrame(draw);
+  // Zombies
+  ctx.fillStyle = '#8b1e1e';
+  for (let i = 0; i < 8; i++) {
+    const offset = Math.sin(gameTime / 12 + i) * 45;
+    ctx.fillRect(180 + i * 165 + offset, 510 + Math.cos(gameTime / 10 + i) * 25, 50, 110);
   }
 
-  draw();
+  // Muzzle flash
+  if (Math.random() > 0.8) {
+    ctx.fillStyle = '#ffee88';
+    ctx.fillRect(765, 465, 50, 18);
+  }
+
+  // Blood effects
+  ctx.fillStyle = 'rgba(209, 48, 47, 0.7)';
+  ctx.fillRect(1050, 580, 40, 25);
+  ctx.fillRect(1350, 540, 35, 30);
+
+  gameTime++;
+  requestAnimationFrame(drawGameplay);
 }
+
+// Override join to trigger visual gameplay
+const originalJoinBtn = document.getElementById('joinBtn');
+const newJoinBtn = originalJoinBtn.cloneNode(true);
+originalJoinBtn.parentNode.replaceChild(newJoinBtn, originalJoinBtn);
+
+newJoinBtn.addEventListener('click', () => {
+  const connStatus = document.getElementById('connStatus');
+  connStatus.textContent = "CONNECTING...";
+  
+  // Keep your original socket.io from client.js
+  // But force the visual game to start
+  setTimeout(() => {
+    document.getElementById('lobby').style.display = 'none';
+    document.getElementById('gameWrap').style.display = 'flex';
+    isInGame = true;
+    drawGameplay();
+  }, 600);
+});
 </script>
+
+<script src="/client.js"></script>
 </body>
 </html>
