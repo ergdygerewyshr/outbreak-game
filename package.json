@@ -1,14 +1,8 @@
 {
-  "name": "outbreak-zombie-survival",
+  "name": "outbreak",
   "version": "1.0.0",
-  "description": "Online multiplayer zombie wave-survival game",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "scripts": { "start": "node server.js" },
   "dependencies": {
     "express": "^4.19.2",
     "socket.io": "^4.7.5"
